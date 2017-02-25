@@ -17,7 +17,7 @@ ImagingResampleHorizontalConvolution8u4x(
 
         __m256i sss0, sss1;
         __m256i zero = _mm256_setzero_si256();
-        __m256i initial = _mm256_set1_epi32((1 << (coefs_precision -1)));
+        __m256i initial = _mm256_set1_epi32(1 << (coefs_precision -1));
         sss0 = initial;
         sss1 = initial;
 
@@ -115,7 +115,7 @@ ImagingResampleHorizontalConvolution8u4x(
 #else
 
         __m128i sss0, sss1, sss2, sss3;
-        __m128i initial = _mm_set1_epi32((1 << (coefs_precision -1)));
+        __m128i initial = _mm_set1_epi32(1 << (coefs_precision -1));
         sss0 = initial;
         sss1 = initial;
         sss2 = initial;
