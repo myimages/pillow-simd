@@ -638,7 +638,7 @@ _new_block(PyObject* self, PyObject* args)
     if (!PyArg_ParseTuple(args, "s(ii)", &mode, &xsize, &ysize))
         return NULL;
 
-    return PyImagingNew(ImagingNewBlock(mode, xsize, ysize));
+    return PyImagingNew(ImagingNewBlock(mode, xsize, ysize, 0));
 }
 
 static PyObject*

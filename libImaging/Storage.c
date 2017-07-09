@@ -295,7 +295,7 @@ ImagingDestroyArray(Imaging im)
 }
 
 Imaging
-ImagingNewArray(const char *mode, int xsize, int ysize)
+ImagingNewArray(const char *mode, int xsize, int ysize, int dirty)
 {
     Imaging im;
     ImagingSectionCookie cookie;
@@ -312,7 +312,11 @@ ImagingNewArray(const char *mode, int xsize, int ysize)
     /* Allocate image as an array of lines */
     for (y = 0; y < im->ysize; y++) {
         /* malloc check linesize checked in prologue */
-        p = (char *) calloc(1, im->linesize);
+        if (dirty) {
+            p = (char *) malloc(im->linesize);
+        } else {
+            p = (char *) calloc(1, im->linesize);
+        }
         if (!p) {
             ImagingDestroyArray(im);
             break;
@@ -341,7 +345,7 @@ ImagingDestroyBlock(Imaging im)
 }
 
 Imaging
-ImagingNewBlock(const char *mode, int xsize, int ysize)
+ImagingNewBlock(const char *mode, int xsize, int ysize, int dirty)
 {
     Imaging im;
     Py_ssize_t y, i;
@@ -367,7 +371,11 @@ ImagingNewBlock(const char *mode, int xsize, int ysize)
         im->block = (char *) malloc(1);
     } else {
         /* malloc check ok, overflow check above */
-        im->block = (char *) calloc(im->ysize, im->linesize);
+        if (dirty) {
+            im->block = (char *) malloc(im->ysize * im->linesize);
+        } else {
+            im->block = (char *) calloc(im->ysize, im->linesize);
+        }
     }
 
     if (im->block) {
@@ -393,7 +401,7 @@ ImagingNewBlock(const char *mode, int xsize, int ysize)
 #endif
 
 Imaging
-ImagingNew(const char* mode, int xsize, int ysize)
+ImagingNewInternal(const char* mode, int xsize, int ysize, int dirty)
 {
     int bytes;
     Imaging im;
@@ -414,14 +422,26 @@ ImagingNew(const char* mode, int xsize, int ysize)
     }
 
     if ((int64_t) xsize * (int64_t) ysize <= THRESHOLD / bytes) {
-        im = ImagingNewBlock(mode, xsize, ysize);
+        im = ImagingNewBlock(mode, xsize, ysize, dirty);
         if (im)
             return im;
         /* assume memory error; try allocating in array mode instead */
         ImagingError_Clear();
     }
 
-    return ImagingNewArray(mode, xsize, ysize);
+    return ImagingNewArray(mode, xsize, ysize, dirty);
+}
+
+Imaging
+ImagingNewDirty(const char* mode, int xsize, int ysize)
+{
+    return ImagingNewInternal(mode, xsize, ysize, 1);
+}
+
+Imaging
+ImagingNew(const char* mode, int xsize, int ysize)
+{
+    return ImagingNewInternal(mode, xsize, ysize, 0);
 }
 
 Imaging
